@@ -1,0 +1,23 @@
+# Lagerhanteringssystem - Frontend (SPA)
+
+Detta är klient-applikationen för lagerhanteringssystemet, byggd som en modern Single Page Application (SPA) med Vue.js. Applikationen kommunicerar asynkront med en separat REST-webbtjänst (Hapi.js/MongoDB) för att hantera autentisering och produktadministration.
+
+## 🚀 Funktioner & Implementering 
+
+* **Single Page Application (SPA):** Hela klienten körs i webbläsaren. Sidbyten och routing hanteras sömlöst via `Vue Router` utan resurskrävande sidomladdningar.
+* **Användarcentrerad design:** Gränssnittet är utvecklat utifrån strikta Figma-skisser med ett modernt färgtema i orange och vitt, optimerat för mobila enheter på lagret samt stationära datorer.
+* **Responsiv Layout:** Byggt med `Bootstrap 5` och `Bootstrap Icons` för ett enhetligt, tillgängligt och responsivt gränssnitt.
+* **Säker Autentisering (JWT):** Inloggningsvyn validerar användaruppgifter mot backend via Fetch API. Vid lyckad inloggning lagras en tidsbegränsad JSON Web Token (JWT) säkert i `localStorage` för att auktorisera efterföljande API-anrop, och användaren omdirigeras automatiskt till administrationspanelen.
+
+## 🛠️ Teknikstack
+
+* **Framework:** Vue 3 (Composition/Options API)
+* **Build Tool:** Vite (för blixtsnabb utveckling och optimerad produktion)
+* **Routing:** Vue Router 4
+* **Styling:** Bootstrap 5 & Bootstrap Icons
+
+## 💻 Installation och Körning
+
+1. laddar ner allt via Git ` https://github.com/Najah-hawa/frontend.git `
+2. npm install 
+3. npm run dev
