@@ -6,18 +6,43 @@ const routes = [
     {
         path: '/',
         name: 'login',
-        component: LoginView
+        component: LoginView,
+        meta: { requiresAuth: false } // Kräver inte inloggning
     },
     {
         path: '/admin',
         name: 'admin',
-        component: AdminView
+        component: AdminView, 
+        meta: { requiresAuth: true } // KRÄVER INLOGGNING
     }
 ];
 
 const router = createRouter({
     history: createWebHistory(),
     routes
+});
+
+// GLOBAL RUTT-VAKT 
+router.beforeEach((to, from, next) => {
+    // Kolla om den sida vi är på väg till kräver inloggning
+    const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+    // Kolla om det finns en token sparad i localStorage
+    const isAuthenticated = localStorage.getItem('token');
+
+    if (requiresAuth && !isAuthenticated) {
+        // Om sidan kräver inloggning men användaren inte är inloggad -> Skicka till login
+        //och bifoga en query-parameter med ett felmeddelande
+       next({ 
+            path: '/', 
+            query: { alert: 'Du måste vara inloggad för att se den sidan.' } 
+        });
+    } else if (to.path === '/' && isAuthenticated) {
+        // Om användaren redan ÄR inloggad men försöker gå till login -> Skicka direkt till admin
+        next('/admin');
+    } else {
+        // Annars, låt användaren passera som vanligt
+        next();
+    }
 });
 
 export default router;

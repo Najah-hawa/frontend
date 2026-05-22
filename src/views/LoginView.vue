@@ -1,12 +1,17 @@
 <template>
   <div class="login-wrapper d-flex align-items-center justify-content-center">
     <div class="login-card p-4 shadow">
-      
-      <h1 class="text-center login-title mb-4">Logga in</h1>
+
 
       <div v-if="errorMessage" class="alert alert-danger p-2 text-center small" role="alert">
         {{ errorMessage }}
       </div>
+      <div v-if="authMessage" class="alert alert-warning p-2 text-center small" role="alert">
+        {{ authMessage }}
+      </div>
+
+      <h1 class="text-center login-title mb-4">Logga in</h1>
+
 
       <form @submit.prevent="handleLogin">
         
@@ -63,8 +68,18 @@ export default {
       email: '',
       password: '',
       errorMessage: '',
+      authMessage: '',
       isLoading: false
     };
+  },
+  mounted() {
+    // Kolla om det finns en token i localStorage
+   if (this.$route.query.alert) {
+      this.authMessage = this.$route.query.alert;
+      
+      // Rensar adressraden så att den ser ren ut efter att texten hamnat på skärmen
+      this.$router.replace({ query: null });
+    }
   },
   methods: {
     async handleLogin() {
