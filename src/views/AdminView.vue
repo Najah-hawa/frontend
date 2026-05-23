@@ -61,7 +61,7 @@
 
           <div>
             <div class="d-flex gap-2 mb-3">
-              <button class="btn btn-action-danger btn-sm flex-grow-1 py-2 fw-semibold">radera</button>
+              <button  @click="deleteProduct(product._id, product.name)" class="btn btn-action-danger btn-sm flex-grow-1 py-2 fw-semibold">radera</button>
               <button class="btn btn-action-secondary btn-sm flex-grow-1 py-2 fw-semibold">uppdatera</button>
             </div>
 
@@ -74,7 +74,6 @@
               </button>
               <div class="text-center flex-grow-1">
                 <span class="stock-number d-block fw-bold text-white">{{ product.stockQuantity }}</span>
-                <span class="stock-label text-white-50 text-uppercase">minska</span>
               </div>
               <button 
                 @click="updateStock(product._id, 'increase')" 
@@ -83,9 +82,7 @@
                 +
               </button>
             </div>
-            <div class="text-end px-1 mt-1">
-              <span class="stock-sub-label text-muted text-uppercase">lägg till</span>
-            </div>
+
           </div>
 
         </div>
@@ -135,8 +132,30 @@ export default {
         this.isLoading = false;
       }
     },
+    
+    // 2. ta bort en produkt  
+    async deleteProduct(productId, productName) {
+      if (!confirm(`Är du säker på att du vill radera "${productName}"?`)) return;
 
-    // 2. Uppdatera lagersaldo (Glöm inte kommatecknet efter denna!)
+      try {
+        const token = localStorage.getItem('token');
+
+        const response = await axios.delete(`http://localhost:3000/products/${productId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+       });
+
+      if (response.status === 200 || response.status === 204) {
+      // Ta bort produkten direkt från skärmen
+      this.products = this.products.filter(p => p._id !== productId);
+      alert(`"${productName}" har raderats.`);
+      }
+      } catch (err) {
+      console.error('Kunde inte radera produkten:', err);
+      alert('Ett fel uppstod på servern vid radering.');
+      }
+    },
+
+    // 2. Uppdatera lagersaldo 
     async updateStock(productId, action) {
       try {
         const token = localStorage.getItem('token');
@@ -191,9 +210,7 @@ export default {
         return '';
       }
     }
-  } 
-
-  
+  }
 };
 </script>
 
