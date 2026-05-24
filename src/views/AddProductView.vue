@@ -10,57 +10,95 @@
           </div>
           
           <div class="p-4 p-sm-5">
-            <form @submit.prevent>
+            <div v-if="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+            <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>      
+
+            <form @submit.prevent="submitProduct">
               
               <div class="mb-4">
                 <input 
+                  v-model="product.name"
                   type="text" 
                   class="form-control custom-input" 
                   placeholder="name" 
+                  required
                 />
               </div>
 
               <div class="mb-4">
                 <textarea 
+                  v-model="product.description"
                   class="form-control custom-input custom-textarea" 
                   placeholder="description" 
                   rows="4"
+                  required
                 ></textarea>
               </div>
 
               <div class="mb-4">
                 <input 
+                  v-model="product.stockQuantity"
                   type="number" 
                   class="form-control custom-input" 
                   placeholder="StockQuantity" 
+                  min="0"
+                  required
                 />
               </div>
 
               <div class="mb-4">
                 <input 
+                  v-model.number="product.price"
                   type="number" 
                   class="form-control custom-input" 
                   placeholder="pris" 
+                  min="0"
+                  required
                 />
+              </div>
+              <div class="mb-4">
+                <select 
+                  v-model="product.category"
+                  class="form-select custom-input custom-select"
+                  required
+                >
+                  <option value="" disabled selected hidden>välj kategori</option>
+                  
+                  <option 
+                    v-for="cat in categories" 
+                    :key="cat._id" 
+                    :value="cat._id"
+                  >
+                    {{ cat.name }}
+                  </option>
+                </select>
+                <div v-if="categories.length === 0" class="form-text text-danger ps-1 mt-1 text-lowercase">
+                  hittade inga kategorier. skapa en kategori först!
+                </div>
               </div>
 
               <div class="mb-4">
                 <div class="size-selector d-flex align-items-center flex-wrap gap-2 py-2 px-3 rounded bg-white">
                   <span class="size-label me-2">size:</span>
-                  <button type="button" class="btn btn-size-badge">xs</button>
-                  <button type="button" class="btn btn-size-badge">s</button>
-                  <button type="button" class="btn btn-size-badge">m</button>
-                  <button type="button" class="btn btn-size-badge">L</button>
-                  <button type="button" class="btn btn-size-badge">xl</button>
-                  <button type="button" class="btn btn-size-badge">xxl</button>
+                 <button 
+                    v-for="s in ['xs', 's', 'm', 'L', 'xl', 'xxl']" 
+                    :key="s"
+                    type="button" 
+                    class="btn btn-size-badge"
+                    :class="{ active: product.size === s }"
+                    @click="product.size = s"
+                  >
+                  </button>
                 </div>
               </div>
 
               <div class="mb-4">
                 <input 
+                  v-model="product.color"
                   type="text" 
                   class="form-control custom-input" 
                   placeholder="color" 
+                  required
                 />
               </div>
 
@@ -72,13 +110,20 @@
                     id="productImage" 
                     class="form-control custom-file-input bg-white text-dark" 
                     accept="image/*"
+                    @change="handleFileUpload"
+                    required
                   />
+                  <small v-if="imageName" class="text-muted mt-1">Vald fil: {{ imageName }}</small>
                 </div>
               </div>
 
               <div class="text-center mt-5">
-                <button type="button" class="btn btn-submit-orange px-5 py-2.5 fw-semibold text-lowercase shadow-sm">
-                  lägg till produkt
+                <button 
+                  type="submit" 
+                  class="btn btn-submit-orange px-5 py-2.5 fw-semibold text-lowercase shadow-sm"
+                  :disabled="isSubmitting"
+                >
+                  {{ isSubmitting ? 'lägger till...' : 'lägg till produkt' }}
                 </button>
               </div>
 
@@ -92,9 +137,134 @@
   </div>
 </template>
 
+
 <script>
+import axios from 'axios';
+
 export default {
-  name: 'AddProductView'
+  name: 'AddProductView',
+  data() {
+    return {
+      product: {
+        name: '',
+        description: '',
+        stockQuantity: null,
+        price: null,
+        size: '', 
+        color: '',
+        category: '' 
+      },
+      categories: [],
+      selectedFile: null,
+      imageName: '',
+      isSubmitting: false,
+      errorMessage: '',
+      successMessage: ''
+    };
+  },
+  // mounted körs automatiskt så fort sidan laddas in i webbläsaren
+  mounted() {
+    this.fetchCategories();
+  },
+  methods: {
+    // Hämtar alla kategorier från databasen på port 3000
+    async fetchCategories() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:3000/categories', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        // Spara kategorierna i vår array (Hapi returnerar oftast datan direkt eller i response.data)
+        this.categories = response.data;
+      } catch (err) {
+        console.error('Kunde inte hämta kategorier:', err);
+        this.errorMessage = 'Kunde inte ladda in kategorier till menyn. Kontrollera din backend.';
+      }
+    },
+    // Fånga upp bildfilen när användaren väljer en bild
+    handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        this.selectedFile = file;
+        this.imageName = file.name;
+      }
+    },
+
+    // Skicka datan till backend
+    async submitProduct() {
+      this.errorMessage = '';
+      this.successMessage = '';
+      
+      // Säkerställ att en bild har valts (krävs av din Hapi-backend)
+      if (!this.selectedFile) {
+        this.errorMessage = 'Du måste välja en produktbild.';
+        return;
+      }
+
+      this.isSubmitting = true;
+
+      try {
+        // Skapa FormData eftersom vi skickar en binär bildfil
+        const formData = new FormData();
+        formData.append('name', this.product.name);
+        formData.append('description', this.product.description);
+        formData.append('stockQuantity', this.product.stockQuantity);
+        formData.append('price', this.product.price);
+        formData.append('size', this.product.size);
+        formData.append('color', this.product.color);
+        formData.append('category', this.product.category);
+        formData.append('image', this.selectedFile); // Skickar filen direkt under nyckeln 'image'
+
+        // Hämta JWT-token från localStorage
+        const token = localStorage.getItem('token');
+
+        // Skicka POST-förfrågan till din Hapi-server
+        const response = await axios.post('http://localhost:3000/products', formData, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data' // Viktigt! Detta talar om att det är en fil med
+          }
+        });
+
+        if (response.status === 201) {
+          this.successMessage = 'Produkten har lagts till i databasen!';
+          this.resetForm();
+          
+          // Valfritt: Navigera tillbaka till adminvyn efter 2 sekunder
+          setTimeout(() => {
+            this.$router.push('/admin'); // Justera sökvägen så den matchar din admin-route
+          }, 2000);
+        }
+
+      } catch (err) {
+        console.error('Fel vid skapande av produkt:', err);
+        // Visa felmeddelandet från servern om det finns, annars ett generiskt
+        this.errorMessage = err.response?.data?.error || 'Ett fel uppstod på servern vid sparande.';
+      } finally {
+        this.isSubmitting = false;
+      }
+    },
+
+    // Töm formuläret efter lyckad sparning
+    resetForm() {
+      this.product = {
+        name: '',
+        description: '',
+        stockQuantity: null,
+        price: null,
+        size: 's',
+        color: '',
+        category: '' // Behåll samma kategori-id
+      };
+      this.selectedFile = null;
+      this.imageName = '';
+      // Töm även fil-inputfältet i HTML-koden
+      document.getElementById('productImage').value = '';
+    }
+  }
 };
 </script>
 
@@ -142,6 +312,18 @@ export default {
   box-shadow: 0 0 0 3px rgba(230, 92, 0, 0.15) !important;
   outline: none;
 }
+/* Styling för dropdown-pilen och texten i select-menyn */
+.custom-select {
+  cursor: pointer;
+  color: #888888 !important; 
+  text-transform: lowercase;
+}
+
+/* Ändrar textfärg till svart när man faktiskt har valt en kategori */
+.custom-select:valid {
+  color: #000000 !important;
+}
+
 
 .custom-textarea {
   resize: none;

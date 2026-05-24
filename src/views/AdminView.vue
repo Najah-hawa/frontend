@@ -3,9 +3,12 @@
     
     <div class="row g-3 mb-5 justify-content-center">
       <div class="col-12 col-md-5 col-lg-4">
-        <button class="btn btn-outline-orange w-100 py-3 fw-bold text-uppercase tracking-wider btn-top-admin">
-          <i class="bi bi-folder-plus me-2 fs-5"></i>lägg till category
-        </button>
+
+         <router-link 
+           to="/admin/add-category" 
+           class="btn btn-outline-orange w-100 py-3 fw-bold text-uppercase tracking-wider btn-top-admin text-decoration-none d-block text-center">
+          <i class="bi bi-plus-circle me-2 fs-5"></i>lägg till category
+        </router-link>
       </div>
       <div class="col-12 col-md-5 col-lg-4">
         <router-link 
