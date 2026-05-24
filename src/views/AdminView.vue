@@ -60,7 +60,9 @@
             <div class="product-info mb-3 text-start">
               <h6 class="product-name mb-1 text-truncate" :title="product.name">{{ product.name }}</h6>
               <p class="product-desc text-muted mb-2 multi-line-truncate">{{ product.description || 'Ingen beskrivning tillgänglig' }}</p>
-              <span class="product-cat-tag d-inline-block small">Kategori</span>
+              <span class="product-cat-tag d-inline-block small text-lowercase">
+              {{ product.category && product.category.name ? product.category.name : 'okategoriserad' }}
+              </span>
             </div>
           </div>
 
@@ -312,6 +314,16 @@ export default {
   font-size: 0.85rem;
   line-height: 1.4;
   height: 2.8em; 
+}
+
+.product-cat-tag {
+  background-color: #f0f0f0; 
+  color: #555555;            
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid #e0e0e0;
 }
 
 .multi-line-truncate {
