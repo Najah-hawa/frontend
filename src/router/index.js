@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import LoginView from '../views/LoginView.vue';
 import AdminView from '../views/AdminView.vue';
+import AddProductView from '../views/AddProductView.vue';
 
 const routes = [
     {
@@ -14,6 +15,11 @@ const routes = [
         name: 'admin',
         component: AdminView, 
         meta: { requiresAuth: true } // KRÄVER INLOGGNING
+    },
+    {
+    path: '/admin/add-product',
+    name: 'AddProduct',
+    component: AddProductView
     }
 ];
 

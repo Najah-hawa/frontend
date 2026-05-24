@@ -8,9 +8,11 @@
         </button>
       </div>
       <div class="col-12 col-md-5 col-lg-4">
-        <button class="btn btn-orange w-100 py-3 fw-bold text-uppercase tracking-wider btn-top-admin">
+        <router-link 
+           to="/admin/add-product" 
+           class="btn btn-orange w-100 py-3 fw-bold text-uppercase tracking-wider btn-top-admin text-decoration-none d-block text-center">
           <i class="bi bi-plus-circle me-2 fs-5"></i>lägg till produkt
-        </button>
+        </router-link>
       </div>
     </div>
 
