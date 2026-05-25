@@ -3,7 +3,7 @@ import LoginView from '../views/LoginView.vue';
 import AdminView from '../views/AdminView.vue';
 import AddProductView from '../views/AddProductView.vue';
 import AddCategoryView from '../views/AddCategoryView.vue';
-
+import EditProductView from '../views/EditProductView.vue';
 
 const routes = [
     {
@@ -27,6 +27,11 @@ const routes = [
     path: '/admin/add-category',
     name: 'AddCategory',
     component: AddCategoryView
+    },
+    {
+    path: '/admin/edit-product/:id',
+    name: 'EditProduct',
+    component: EditProductView
     }
 ];
 

@@ -19,11 +19,31 @@
       </div>
     </div>
 
-    <div class="row mb-5 justify-content-center">
-      <div class="col-12 col-lg-10">
-        <h3 class="category-title text-center py-3 shadow-sm rounded bg-white m-0">
-          produkter i category : <span class="badge bg-orange-light text-orange px-3 py-2">Alla</span>
+<div class="row mb-5 justify-content-center align-items-center g-3">
+      <div class="col-12 col-lg-6">
+        <h3 class="category-title text-start py-3 px-4 shadow-sm rounded bg-white m-0 h-100 d-flex align-items-center justify-content-between">
+          <span>produkter i kategori:</span>
+          <span class="badge bg-orange-light text-orange px-3 py-2 text-lowercase">
+            {{ selectedCategoryName }}
+          </span>
         </h3>
+      </div>
+      
+      <div class="col-12 col-lg-4">
+        <select 
+  v-model="selectedCategory" 
+  class="form-select custom-admin-select shadow-sm py-3 px-4 rounded border-0"
+>
+  <option value="all">visa alla kategorier</option>
+  
+  <option 
+    v-for="cat in categories" 
+    :key="cat._id" 
+    :value="cat._id"
+  >
+    {{ cat.name }}
+  </option>
+</select>
       </div>
     </div>
 
@@ -36,8 +56,8 @@
       <i class="bi bi-exclamation-octagon-fill me-2"></i>{{ errorMessage }}
     </div>
 
-    <div v-if="!isLoading && products.length > 0" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 justify-content-center">
-      <div class="col d-flex" v-for="product in products" :key="product._id">
+      <div v-if="!isLoading && filteredProducts.length > 0" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 justify-content-center">
+      <div class="col d-flex" v-for="product in filteredProducts" :key="product._id">
         <div class="product-card p-3 shadow-sm w-100 d-flex flex-column justify-content-between bg-white">
           
           <div>
@@ -69,7 +89,11 @@
           <div>
             <div class="d-flex gap-2 mb-3">
               <button  @click="deleteProduct(product._id, product.name)" class="btn btn-action-danger btn-sm flex-grow-1 py-2 fw-semibold">radera</button>
-              <button class="btn btn-action-secondary btn-sm flex-grow-1 py-2 fw-semibold">uppdatera</button>
+              <router-link 
+              :to="`/admin/edit-product/${product._id}`" 
+              class="btn btn-action-secondary btn-sm flex-grow-1 py-2 fw-semibold text-center text-white text-decoration-none">
+               uppdatera
+              </router-link>
             </div>
 
             <div class="stock-control d-flex align-items-center justify-content-between p-2 rounded shadow-inner">
@@ -112,15 +136,56 @@ export default {
   data() {
     return {
       products: [],
+      categories: [],
+      selectedCategory: 'all', //Håller reda på vald kategori ('all' är standard)
       isLoading: false,
       errorMessage: ''
     };
   },
   mounted() {
     this.fetchProducts();
+    this.fetchCategories();
   },
+ computed: {
+  filteredProducts() {
+    // Om "Visa alla" är valt, eller om selectedCategory är tom, visa allt
+    if (this.selectedCategory === 'all' || !this.selectedCategory) {
+      return this.products;
+    }
+
+    // Filtrera produkterna
+    return this.products.filter(product => {
+      // 1. Om backend har 'populerat' kategori, ligger ID:t i product.category._id
+      if (product.category && typeof product.category === 'object') {
+        return product.category._id === this.selectedCategory;
+      }
+      
+      // 2. Om backend bara skickar ID:t som en ren sträng direkt på product.category
+      return product.category === this.selectedCategory;
+    });
+  },
+
+  selectedCategoryName() {
+    if (this.selectedCategory === 'all') return 'Alla';
+    const found = this.categories.find(c => c._id === this.selectedCategory);
+    return found ? found.name : 'Alla';
+  }
+},
   methods: {
-    // 1. Hämta alla produkter
+    // Hämta alla kategorier till dropdownen
+    async fetchCategories() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:3000/categories', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        this.categories = response.data;
+      } catch (err) {
+        console.error('Kunde inte hämta kategorier till filter:', err);
+      }
+    },
+
+    //  Hämta alla produkter
     async fetchProducts() {
       this.isLoading = true;
       this.errorMessage = '';
@@ -331,14 +396,6 @@ export default {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;  
   overflow: hidden;
-}
-
-.product-cat-tag {
-  background-color: #6c757d;
-  color: white;
-  padding: 2px 8px;
-  border-radius: 5px;
-  font-size: 0.65rem;
 }
 
 .btn-action-danger {
